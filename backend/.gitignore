@@ -1,0 +1,15 @@
+# Dependencias de Node.js
+node_modules/
+
+# Base de datos SQLite local
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Variables de ambiente y secretos
+.env
+
+# Archivos temporales y logs
+*.log
+npm-debug.log*
