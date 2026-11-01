@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./src/config/db');
 const reportsRoutes = require('./src/routes/reports.routes');
+const authRoutes = require('./src/routes/auth.routes');
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +13,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/api/reports', reportsRoutes);
+app.use('/api/auth', authRoutes);
 
 // Criar a tabela usando o arquivo schema.sql
 const schemaPath = path.join(__dirname, 'sql', 'schema.sql');

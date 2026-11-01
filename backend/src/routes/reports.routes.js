@@ -1,16 +1,29 @@
+
 const express = require('express');
 const router = express.Router();
 
 const db = require('../config/db');
+const authMiddleware = require('../middleware/auth');
 
-// Listar todos los relatos
+// Listar todos os relatos (publico)
 router.get('/', (req, res) => {
-    const reports = db.prepare('SELECT * FROM reports ORDER BY id DESC').all();
+    const reports = db.prepare(
+        'SELECT * FROM reports ORDER BY id DESC'
+    ).all();
 
     res.json(reports);
 });
 
-// Consultar relato
+// Listar relatos do usuario autenticado
+router.get('/my-reports', authMiddleware, (req, res) => {
+    const reports = db.prepare(
+        'SELECT * FROM reports WHERE user_id = ? ORDER BY id DESC'
+    ).all(req.user.id);
+
+    res.json(reports);
+});
+
+// Consultar um relato (publico)
 router.get('/:id', (req, res) => {
     const id = Number(req.params.id);
 
@@ -33,8 +46,8 @@ router.get('/:id', (req, res) => {
     res.json(report);
 });
 
-// Cadastrar novo relato
-router.post('/', (req, res) => {
+// Cadastrar novo relato (requer login)
+router.post('/', authMiddleware, (req, res) => {
     const {
         animal_name,
         animal_type,
@@ -52,7 +65,7 @@ router.post('/', (req, res) => {
         !location ||
         !report_date ||
         !contact_name ||
-        !contact_phone 
+        !contact_phone
     ) {
         return res.status(400).json({
             error: 'Preencha os campos obrigatorios corretamente'
@@ -61,6 +74,7 @@ router.post('/', (req, res) => {
 
     const insert = db.prepare(`
         INSERT INTO reports (
+            user_id,
             animal_name,
             animal_type,
             description,
@@ -69,10 +83,11 @@ router.post('/', (req, res) => {
             contact_name,
             contact_phone,
             image_url
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = insert.run(
+        req.user.id,
         animal_name,
         animal_type,
         description || '',
@@ -89,13 +104,23 @@ router.post('/', (req, res) => {
     });
 });
 
-// Atualizar um relato
-router.put('/:id', (req, res) => {
+// Atualizar um relato (somente o proprietario)
+router.put('/:id', authMiddleware, (req, res) => {
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
         return res.status(400).json({
             error: 'ID invalido.'
+        });
+    }
+
+    const existingReport = db.prepare(
+        'SELECT * FROM reports WHERE id = ? AND user_id = ?'
+    ).get(id, req.user.id);
+
+    if (!existingReport) {
+        return res.status(404).json({
+            error: 'Relato nao encontrado'
         });
     }
 
@@ -110,16 +135,6 @@ router.put('/:id', (req, res) => {
         image_url,
         status
     } = req.body;
-
-    const existingReport = db.prepare(
-        'SELECT * FROM reports WHERE id = ?'
-    ).get(id);
-
-    if (!existingReport) {
-        return res.status(404).json({
-            error: 'Relato nao encontrado'
-        });
-    }
 
     if (
         !animal_name ||
@@ -146,7 +161,7 @@ router.put('/:id', (req, res) => {
             contact_phone = ?,
             image_url = ?,
             status = ?
-        WHERE id = ?
+        WHERE id = ? AND user_id = ?
     `).run(
         animal_name,
         animal_type,
@@ -157,7 +172,8 @@ router.put('/:id', (req, res) => {
         contact_phone,
         image_url || '',
         status || existingReport.status,
-        id
+        id,
+        req.user.id
     );
 
     res.json({
@@ -165,9 +181,8 @@ router.put('/:id', (req, res) => {
     });
 });
 
-
- // Excluir relato
-router.delete('/:id', (req, res) => {
+// Excluir um relato (somente o proprietario)
+router.delete('/:id', authMiddleware, (req, res) => {
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -177,8 +192,8 @@ router.delete('/:id', (req, res) => {
     }
 
     const result = db.prepare(
-        'DELETE FROM reports WHERE id = ?'
-    ).run(id);
+        'DELETE FROM reports WHERE id = ? AND user_id = ?'
+    ).run(id, req.user.id);
 
     if (result.changes === 0) {
         return res.status(404).json({
