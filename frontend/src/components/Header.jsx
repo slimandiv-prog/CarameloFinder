@@ -1,6 +1,13 @@
 function Header({ menuActivo, setMenuActivo, setFiltro}) {
     return (
 
+
+        <header className="cabecalho-home" >
+
+            <div className="marca-home" >
+                <span>CarameloFinder</span>
+            </div>
+            
         <nav className="menu-home">
 
             <a href="#" onClick={() => {
@@ -47,6 +54,8 @@ function Header({ menuActivo, setMenuActivo, setFiltro}) {
             Ajuda </a>
 
         </nav>
+
+        </header>
 
     )
 }

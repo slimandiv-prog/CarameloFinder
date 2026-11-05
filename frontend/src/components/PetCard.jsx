@@ -1,4 +1,4 @@
-function PetCard({ nome, idade, sexo, situacao, localizacao, data, imagem }) {
+function PetCard({ nome, idade, sexo, situacao, localizacao, data, imagem, contato }) {
     return (
         <article className="cartao-pet">
             <div className="foto-pet">
@@ -20,6 +20,12 @@ function PetCard({ nome, idade, sexo, situacao, localizacao, data, imagem }) {
 
              <p className="sexo-pet">
                 Sexo: {sexo}</p>
+
+        {contato && (
+            <a href={`tel:${contato}`} className="boton-contato">
+            Entrar em contato
+            </a>
+        )}
 
         </article>
     )

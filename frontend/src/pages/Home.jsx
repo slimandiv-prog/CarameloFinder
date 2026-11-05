@@ -149,30 +149,18 @@ function Home() {
 return (
     <main className="home">
 
-        <section className="boas-vindas">
-
-            <Header
+         <Header
                 menuActivo={menuActivo}
                 setMenuActivo={setMenuActivo}
                 setFiltro={setFiltro}
 
             />
-          <div className="imagem-boas-vindas">
-        <img src="/caramelofinder-logo.png" alt="Logo do CarameloFinder" />
-            </div>
 
-            <div className="texto-boas-vindas">
+        <section className="apresentacao-home" >
 
-    <div className="marca-home">
-       <h1>
-        Caramelo<span className="nombre-finder">Finder</span>
-       </h1>
-       <p className="frase-destaque">
-        <img src="/patas.png" alt="" className="icone-reencontro" />
-         Cada reencontro importa.</p>
-    </div>
+            <div className="conteudo-hero">
 
-       <h2 className="titulo-home">Juntos encontramos lares!
+        <h2 className="titulo-home">Juntos encontramos lares!
         <img src="/coracaorojo.png" alt="" className="coracao-home" />
         <img src="/pata.png" alt="" className="patitas-home" />
         </h2>
@@ -182,14 +170,21 @@ return (
         </p>
 
         <a href="#relatos" className="boton-relatos">
-            Ver relatos
+            Encontrar meu amigo
             <img src="/patas.png" alt="" className="icone-boton-relatos" />
         </a>
 
         </div>
+
+        <div className="imagem-hero">
+            <img src="/caramelofinder-logo.png" alt="Logo do CarameloFinder" />
+
+        </div>
+
         </section>
 
         <div className="mensagens-carinho">
+
             <div className="mensagem-item">
                 <span className="icone-carinho">
                 <img src="/coracaorojo.png" alt="" className="imagem-carinho" />
@@ -216,13 +211,39 @@ return (
 
 
         <section id="relatos">
-            <h2 className="titulo-relatos">Relatos recentes</h2>
+
+            <div className="area-relatos" >
+            <div className="grupo-filtros" >
+            <h2 className="titulo-relatos">Encontre seu amigo </h2>
+
             <div className="linha-relatos"></div>
 
-            <SearchBar
+            <div className="filtros-relatos">
+                <button
+                className={filtro === "Todos" ? "ativo" : ""}
+                onClick={() => setFiltro("Todos")}
+                > Todos</button>
+
+                <button 
+                className={filtro === "Perdidos" ? "ativo" : ""}
+                onClick={() => setFiltro("Perdidos")}
+                > Perdidos</button>
+
+                <button 
+            className={filtro === "Encontrados" ? "ativo" : ""}
+                onClick={() => setFiltro("Encontrados")}
+                > Encontrados</button>
+
+                </div>
+
+                </div>
+
+                  <SearchBar
             busqueda={busqueda}
             setBusqueda={setBusqueda}
             />
+
+            </div>
 
             <div className="lista-pets">
 
@@ -236,6 +257,7 @@ return (
                 localizacao={pet.localizacao}
                 data={pet.data}
                 imagem={pet.imagem}
+                contato={pet.contato}
                 />
             ))}
             </div>
