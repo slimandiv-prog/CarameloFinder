@@ -1,0 +1,44 @@
+.user-section {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.user-welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 20px 25px;
+  border-radius: 14px;
+  border: 1px solid #eee3d5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+}
+
+.user-welcome p {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4b281b;
+}
+
+.logout-button {
+  background: #f2a900;
+  color: white;
+  border: none;
+  padding: 11px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.logout-button:hover {
+  background: #d99100;
+}
+
+@media (max-width: 600px) {
+  .user-welcome {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

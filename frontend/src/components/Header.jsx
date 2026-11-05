@@ -1,13 +1,6 @@
 function Header({ menuActivo, setMenuActivo, setFiltro}) {
     return (
 
-
-        <header className="cabecalho-home" >
-
-            <div className="marca-home" >
-                <span>CarameloFinder</span>
-            </div>
-            
         <nav className="menu-home">
 
             <a href="#" onClick={() => {
@@ -52,10 +45,17 @@ function Header({ menuActivo, setMenuActivo, setFiltro}) {
             <img src="/ajuda.png" alt="" className="icone-menu" />
 
             Ajuda </a>
+             <a href="#cadastrar"
+            onClick={() => {
+                setMenuActivo("Cadastrar");
+            }}
 
+            className={menuActivo === "Cadastrar" ? "ativo" : ""} >
+            <img src="/patanaranja.png" alt="" className="icone-menu" />
+
+            Cadastrar Animal </a>
         </nav>
-
-        </header>
+        
 
     )
 }

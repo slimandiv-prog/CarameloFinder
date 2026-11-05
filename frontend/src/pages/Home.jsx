@@ -2,8 +2,9 @@ import PetCard from "../components/PetCard.jsx"
 import SearchBar from "../components/SearchBar.jsx"
 import { useState } from "react"
 import Header from "../components/Header.jsx";
+import { unpackExtras } from "../components/PetForm";
 
-function Home() {
+function Home({ apiPets = [], onViewDetails }) {
     const [busqueda, setBusqueda] = useState("");
     const [filtro, setFiltro] = useState("Todos");
     const [menuActivo, setMenuActivo] = useState("Início");
@@ -131,7 +132,30 @@ function Home() {
         },
     ]
 
-    const petsFiltrados = pets.filter((pet) => {
+
+    const petsDaApi = apiPets.map((p) => ({
+        id: `api-${p.id}`,
+        apiId: p.id,
+        nome: p.animal_name,
+        idade: unpackExtras(p.description).age || "—",
+        sexo:
+            unpackExtras(p.description).sex === "male"
+                ? "Macho"
+                : unpackExtras(p.description).sex === "female"
+                ? "Fêmea"
+                : "—",
+        situacao:
+            p.animal_type === "lost"
+                ? (unpackExtras(p.description).sex === "female" ? "Perdida" : "Perdido")
+                : (unpackExtras(p.description).sex === "female" ? "Encontrada" : "Encontrado"),
+        localizacao: p.location,
+        data: p.report_date ? p.report_date.split("-").reverse().join("/") : "",
+        imagem: p.image_url || "/caramelofinder-logo.png",
+    }));
+
+    const todosPets = [...petsDaApi, ...pets];
+
+    const petsFiltrados = todosPets.filter((pet) => {
         const coincideBusqueda =
         pet.nome.toLowerCase().includes(busqueda.toLowerCase()) ||
     pet.localizacao.toLowerCase().includes(busqueda.toLowerCase())
@@ -247,19 +271,38 @@ return (
 
             <div className="lista-pets">
 
-          {petsFiltrados.map((pet) => (
-                <PetCard
-                key={pet.id}
-                nome={pet.nome}
-                idade={pet.idade}
-                sexo={pet.sexo}
-                situacao={pet.situacao}
-                localizacao={pet.localizacao}
-                data={pet.data}
-                imagem={pet.imagem}
-                contato={pet.contato}
-                />
-            ))}
+          {petsFiltrados.map((pet) => {
+                const cartao = (
+                    <PetCard
+                        key={pet.id}
+                        nome={pet.nome}
+                        idade={pet.idade}
+                        sexo={pet.sexo}
+                        situacao={pet.situacao}
+                        localizacao={pet.localizacao}
+                        data={pet.data}
+                        imagem={pet.imagem}
+                        contato={pet.contato}
+                    />
+                );
+
+                if (!pet.apiId || !onViewDetails) return cartao;
+
+                return (
+                    <div
+                        key={pet.id}
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => onViewDetails(pet.apiId)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") onViewDetails(pet.apiId);
+                        }}
+                    >
+                        {cartao}
+                    </div>
+                );
+            })}
             </div>
             </section>
 

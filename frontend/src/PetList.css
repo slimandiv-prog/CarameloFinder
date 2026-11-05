@@ -1,0 +1,170 @@
+
+.pets-section {
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 30px 20px;
+}
+
+.pets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.pets-header h2 {
+  color: #4b281b;
+  font-size: 28px;
+}
+
+
+.refresh-button {
+  background: #f2a900;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.refresh-button:hover {
+  background: #d99100;
+}
+
+
+.pets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+
+
+.pet-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid #eee3d5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  transition: 0.3s;
+}
+
+.pet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
+}
+
+
+
+.pet-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+
+
+.pet-card-content {
+  padding: 20px;
+}
+
+.pet-card-content h3 {
+  font-size: 21px;
+  color: #4b281b;
+  margin-bottom: 12px;
+}
+
+
+
+.pet-status {
+  display: inline-block;
+  padding: 6px 13px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.pet-status.lost {
+  background: #fff0d0;
+  color: #c47b00;
+}
+
+.pet-status.found {
+  background: #e0f5e8;
+  color: #23834b;
+}
+
+.pet-card-content p {
+  font-size: 14px;
+  color: #76665c;
+  margin: 12px 0;
+}
+
+.pet-card-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.details-button,
+.delete-button {
+  flex: 1;
+  padding: 11px 8px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.details-button {
+  background: #f2a900;
+  color: white;
+}
+
+.details-button:hover {
+  background: #d99100;
+}
+
+.delete-button {
+  background: #4b281b;
+  color: white;
+}
+
+.delete-button:hover {
+  background: #713d29;
+}
+
+.pets-message {
+  text-align: center;
+  color: #76665c;
+  padding: 25px;
+}
+
+
+
+@media (max-width: 850px) {
+  .pets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 550px) {
+  .pets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pets-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .pet-card-buttons {
+    flex-direction: column;
+  }
+}
