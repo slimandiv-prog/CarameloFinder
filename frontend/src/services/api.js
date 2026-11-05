@@ -1,3 +1,5 @@
+
+import { getToken } from "./auth";
 const API_URL = "http://localhost:3000/api/reports";
 
 export async function getPets() {
@@ -38,19 +40,20 @@ return response.json();
 }
 
 export async function updatePet(id, pet) {
-const response = await fetch(`${API_URL}/${id}`, {
-method: "PUT",
-headers: {
-"Content-Type": "application/json",
-},
-body: JSON.stringify(pet),
-});
+  const response = await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(pet),
+  });
 
-if (!response.ok) {
-throw new Error("Não foi possível atualizar o registro.");
-}
+  if (!response.ok) {
+    throw new Error("Não foi possível atualizar o registro.");
+  }
 
-return response.json();
+  return response.json();
 }
 
 export async function deletePet(id) {
