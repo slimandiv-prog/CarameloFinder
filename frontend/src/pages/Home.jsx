@@ -1,360 +1,289 @@
-import PetCard from "../components/PetCard.jsx"
-import SearchBar from "../components/SearchBar.jsx"
-import { useState } from "react"
+
+import { useMemo, useState } from "react";
+
+import PetCard from "../components/PetCard.jsx";
+import SearchBar from "../components/SearchBar.jsx";
 import Header from "../components/Header.jsx";
+import PetForm from "../components/PetForm.jsx";
 import { unpackExtras } from "../components/PetForm";
 
-function Home({ apiPets = [], onViewDetails }) {
-    const [busqueda, setBusqueda] = useState("");
-    const [filtro, setFiltro] = useState("Todos");
-    const [menuActivo, setMenuActivo] = useState("Início");
+function Home({
+  apiPets = [],
+  onViewDetails,
+  onAddPet,
+  onLogin,
+}) {
+  const [busqueda, setBusqueda] = useState("");
+  const [filtro, setFiltro] = useState("Todos");
+  const [menuActivo, setMenuActivo] = useState("Início");
 
-    const pets = [
-        {
-            id: 1,
-            nome: "Mel",
-            idade: "10 anos",
-            sexo: "Fêmea",
-            situacao: "Perdida",
-            localizacao: "Campinas - SP",
-            data: "25/10/2026",
-            imagem: "/pets/Mel.jpeg",
-        },
-        {
-            id: 2,
-            nome: "Fofinha",
-            idade: "4 anos",
-            sexo: "Fêmea",
-            situacao: "Encontrada",
-            localizacao: "São Paulo - SP",
-            data: "12/09/2026",
-            imagem: "/pets/Fofinha.jpeg",
-        },
-        {
-            id: 3,
-            nome: "Lalo",
-            idade: "3 anos",
-            sexo: "Macho",
-            situacao: "Encontrado",
-            localizacao: "Manaus - AM",
-            data: "03/08/2024",
-            imagem: "/pets/Lalo.jpeg",
-        },
-        {
-            id: 4,
-            nome: "Sashi",
-            idade: "8 anos",
-            sexo: "Fêmea",
-            situacao: "Encontrada",
-            localizacao:"Manaus - AM",
-            data: "28/06/2024",
-            imagem: "/pets/Sashi.jpeg",
-        },
-        {
-            id: 5,
-            nome: "Patroclo",
-            idade: "1 ano",
-            sexo: "Macho",
-            situacao: "Perdido",
-            localizacao: "Curitiba - PR",
-            data: "28/12/2023",
-            imagem: "/pets/protoclo.jpeg",
-        },
-        {
-            id: 6,
-            nome: "Charly",
-            idade: "4 anos",
-            sexo: "Fêmea",
-            situacao: "Encontrada",
-            localizacao: "Porto Alegre - RS",
-            data: "09/09/2023",
-            imagem: "/pets/Charly.jpeg",
-        },
-        {
-            id: 7,
-            nome: "Branquinho",
-            idade: "5 anos",
-            sexo: "Macho",
-            situacao: "Perdido",
-            localizacao: "Curitiba - PR",
-            data: "14/02/2023",
-            imagem: "/pets/Branquinho.jpeg",
-        },
-        {
-            id: 8,
-            nome: "Papi",
-            idade: "6 anos",
-            sexo: "Macho",
-            situacao: "Perdido",
-            localizacao: "Curitiba - PR",
-            data: "14/10/2021",
-            imagem: "/pets/Papi.jpeg",
-        },
-        {
-            id: 9,
-            nome: "Peludo",
-            idade: "1 ano",
-            sexo: "Macho",
-            situacao: "Encontrado",
-            localizacao: "Porto Alegre - RS",
-            data: "09/10/2021",
-            imagem: "/pets/Peludo.jpeg",
-        },
-        {
-            id: 10,
-            nome: "Silvet",
-            idade: "5 anos",
-            sexo: "Fêmea",
-            situacao: "Perdida",
-            localizacao: "Curitiba - PR",
-            data: "14/02/2018",
-            imagem: "/pets/silvet.jpeg",
-        },
-        {
-            id: 11,
-            nome: "Sam",
-            sexo: "Macho",
-            idade: "4 anos",
-            situacao: "Perdido",
-            localizacao: "Campinas - SP",
-            data: "05/01/2018",
-            imagem: "/pets/sam.jpeg",
-        },
-        {
-            id: 12,
-            nome: "Chin Chin",
-            sexo: "Macho",
-            idade: "7 anos",
-            situacao: "Encontrado",
-            localizacao: "São Paulo - SP",
-            data: "15/10/2017",
-            imagem: "/pets/chinchin.jpeg",
-        },
-    ]
+  const pets = useMemo(() => {
+    return apiPets.map((pet) => {
+      const extras = unpackExtras(pet.description || "");
+      const isFemale = extras.sex === "female";
+      const isLost = pet.animal_type === "lost";
 
+      return {
+        id: pet.id,
+        apiId: pet.id,
+        nome: pet.animal_name || "Animal sem nome",
+        idade: extras.age || "",
+        sexo: extras.sex || "",
+        especie: extras.species || "",
+        situacao: isLost
+          ? isFemale ? "Perdida" : "Perdido"
+          : isFemale ? "Encontrada" : "Encontrado",
+        localizacao: pet.location || "Localização não informada",
+        data: pet.report_date
+          ? pet.report_date.split("-").reverse().join("/")
+          : "Não informada",
+        imagem: pet.image_url || "/caramelofinder-logo.png",
+        status: pet.status || "active",
+      };
+    });
+  }, [apiPets]);
 
-    const petsDaApi = apiPets.map((p) => ({
-        id: `api-${p.id}`,
-        apiId: p.id,
-        nome: p.animal_name,
-        idade: unpackExtras(p.description).age || "—",
-        sexo:
-            unpackExtras(p.description).sex === "male"
-                ? "Macho"
-                : unpackExtras(p.description).sex === "female"
-                ? "Fêmea"
-                : "—",
-        situacao:
-            p.animal_type === "lost"
-                ? (unpackExtras(p.description).sex === "female" ? "Perdida" : "Perdido")
-                : (unpackExtras(p.description).sex === "female" ? "Encontrada" : "Encontrado"),
-        localizacao: p.location,
-        data: p.report_date ? p.report_date.split("-").reverse().join("/") : "",
-        imagem: p.image_url || "/caramelofinder-logo.png",
-    }));
+  const petsFiltrados = useMemo(() => {
+    const termo = busqueda.trim().toLocaleLowerCase("pt-BR");
 
-    const todosPets = [...petsDaApi, ...pets];
+    return pets.filter((pet) => {
+      const nome = pet.nome.toLocaleLowerCase("pt-BR");
+      const localizacao = pet.localizacao.toLocaleLowerCase("pt-BR");
 
-    const petsFiltrados = todosPets.filter((pet) => {
-        const coincideBusqueda =
-        pet.nome.toLowerCase().includes(busqueda.toLowerCase()) ||
-    pet.localizacao.toLowerCase().includes(busqueda.toLowerCase())
+      const correspondeBusca =
+        nome.includes(termo) || localizacao.includes(termo);
 
-    const coincideFiltro =
-    filtro === "Todos" ||
-    (filtro === "Perdidos" &&
-        (pet.situacao === "Perdido" || pet.situacao === "Perdida")) ||
+      const correspondeFiltro =
+        filtro === "Todos" ||
+        (filtro === "Perdidos" &&
+          ["Perdido", "Perdida"].includes(pet.situacao)) ||
         (filtro === "Encontrados" &&
-            (pet.situacao === "Encontrado" || pet.situacao === "Encontrada"))
+          ["Encontrado", "Encontrada"].includes(pet.situacao));
 
-            return coincideBusqueda && coincideFiltro
-            })
+      return correspondeBusca && correspondeFiltro;
+    });
+  }, [pets, busqueda, filtro]);
 
-return (
-    <main className="home">
+  function handleFilterChange(value) {
+    setFiltro(value);
+    setMenuActivo(value === "Todos" ? "Início" : value);
+  }
 
-         <Header
-                menuActivo={menuActivo}
-                setMenuActivo={setMenuActivo}
-                setFiltro={setFiltro}
+  function handleViewDetails(petId) {
+    onViewDetails?.(petId);
+  }
 
-            />
+  return (
+    <div className="home">
+      <Header
+        menuActivo={menuActivo}
+        setMenuActivo={setMenuActivo}
+        setFiltro={setFiltro}
+        onLogin={onLogin}
+      />
 
-        <section className="apresentacao-home" >
+      {/* HERO */}
+      <section className="apresentacao-home">
+        <div className="conteudo-hero">
+          <span className="hero-eyebrow">
+            <span className="hero-eyebrow-dot" />
+            CARAMELO FINDER
+          </span>
 
-            <div className="conteudo-hero">
+          <h1 className="titulo-home">
+            <span>Juntos</span>
+            <span>encontramos</span>
+            <span className="titulo-destaque">lares 🐾</span>
+          </h1>
 
-        <h2 className="titulo-home">Juntos encontramos lares!
-        <img src="/coracaorojo.png" alt="" className="coracao-home" />
-        <img src="/pata.png" alt="" className="patitas-home" />
-        </h2>
+          <p className="descricao">
+            Caramelo Finder é uma plataforma para ajudar a encontrar
+            animais de estimação perdidos e reuni-los com suas famílias.
+          </p>
 
-       <p className="descricao">
-        O CarameloFinder é uma plataforma criada para ajudar a divulgar animais perdidos e encontrados, facilitando o reencontro dos pets com suas famílias.
-        </p>
+          <div className="hero-beneficios">
+            <div className="hero-beneficio">
+              <span className="beneficio-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+                </svg>
+              </span>
+              <span>Conecta Comunidades</span>
+            </div>
 
-        <a href="#relatos" className="boton-relatos">
-            Encontrar meu amigo
-            <img src="/patas.png" alt="" className="icone-boton-relatos" />
-        </a>
+            <div className="hero-beneficio">
+              <span className="beneficio-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+              </span>
+              <span>Compartilha relatos seguros</span>
+            </div>
 
+            <div className="hero-beneficio">
+              <span className="beneficio-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <ellipse cx="12" cy="16" rx="6" ry="5" />
+                  <ellipse cx="5" cy="9" rx="2.5" ry="3" />
+                  <ellipse cx="10" cy="5" rx="2.5" ry="3" />
+                  <ellipse cx="16" cy="5" rx="2.5" ry="3" />
+                  <ellipse cx="20" cy="9" rx="2.5" ry="3" />
+                </svg>
+              </span>
+              <span>Mais possibilidades de se reunir</span>
+            </div>
+          </div>
         </div>
 
         <div className="imagem-hero">
-            <img src="/caramelofinder-logo.png" alt="Logo do CarameloFinder" />
-
+          <img
+            src="/perrita.png"
+            alt="Mascote CarameloFinder"
+          />
         </div>
 
-        </section>
+        <div className="hero-form-wrapper" id="cadastrar">
+          <PetForm onAddPet={onAddPet} />
+        </div>
+      </section>
 
-        <div className="mensagens-carinho">
+      {/* RELATÓRIOS RECENTES */}
+      <section className="secao-relatos" id="relatos">
+        <div className="relatos-heading">
+          <div>
+            <span className="section-eyebrow">FAÇA PARTE DESSA CAUSA</span>
+            <h2 className="titulo-relatos">
+              Relatórios recentes
+              <span className="titulo-paw">🐾</span>
+            </h2>
+          </div>
 
-            <div className="mensagem-item">
-                <span className="icone-carinho">
-                <img src="/coracaorojo.png" alt="" className="imagem-carinho" />
-                </span>
-            <p>Espalhe carinho</p>
-            </div>
-
-            <div className="mensagem-item">
-                <span className="icone-carinho">
-                    <img src="/megaphone.png" alt="" className="imagem-carinho"/>
-                </span>
-                <p>Compartilhe, ajude e espalhe carinho</p>
-            </div>
-
-            <div className="mensagem-item">
-                <span className="icone-carinho">
-                    <img src="/patas.png" alt="" className="imagem-carinho" />
-
-                </span>
-            <p> Cada relato é uma nova chance de reencontro</p>
-            </div>
-
+          <span className="relatos-heading-icon">♡</span>
         </div>
 
-
-        <section id="relatos">
-
-            <div className="area-relatos" >
-            <div className="grupo-filtros" >
-            <h2 className="titulo-relatos">Encontre seu amigo </h2>
-
-            <div className="linha-relatos"></div>
-
-            <div className="filtros-relatos">
-                <button
-                className={filtro === "Todos" ? "ativo" : ""}
-                onClick={() => setFiltro("Todos")}
-                > Todos</button>
-
-                <button 
-                className={filtro === "Perdidos" ? "ativo" : ""}
-                onClick={() => setFiltro("Perdidos")}
-                > Perdidos</button>
-
-                <button 
-            className={filtro === "Encontrados" ? "ativo" : ""}
-                onClick={() => setFiltro("Encontrados")}
-                > Encontrados</button>
-
-                </div>
-
-                </div>
-
-                  <SearchBar
+        <div className="relatos-toolbar">
+          <SearchBar
             busqueda={busqueda}
             setBusqueda={setBusqueda}
-            />
+          />
 
+          <div className="filtros-relatos" aria-label="Filtrar registros">
+            {["Todos", "Perdidos", "Encontrados"].map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={filtro === item ? "ativo" : ""}
+                aria-pressed={filtro === item}
+                onClick={() => handleFilterChange(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="resultado-relatos" aria-live="polite">
+          {petsFiltrados.length === 1
+            ? "1 registro encontrado"
+            : `${petsFiltrados.length} registros encontrados`}
+        </div>
+
+        <div className="lista-pets">
+          {petsFiltrados.length > 0 ? (
+            petsFiltrados.map((pet) => (
+              <div
+                key={pet.id}
+                className="pet-card-interativo"
+                role="button"
+                tabIndex={0}
+                aria-label={`Ver detalhes de ${pet.nome}`}
+                onClick={() => handleViewDetails(pet.apiId)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleViewDetails(pet.apiId);
+                  }
+                }}
+              >
+                <PetCard
+                  nome={pet.nome}
+                  idade={pet.idade}
+                  sexo={pet.sexo}
+                  especie={pet.especie}
+                  situacao={pet.situacao}
+                  localizacao={pet.localizacao}
+                  data={pet.data}
+                  imagem={pet.imagem}
+                />
+              </div>
+            ))
+          ) : (
+            <div className="relatos-vazios">
+              <span className="relatos-vazios-icone">🐾</span>
+              <h3>
+                {pets.length === 0
+                  ? "Ainda não temos registros"
+                  : "Nenhum animal encontrado"}
+              </h3>
+              <p>
+                {pets.length === 0
+                  ? "Seja o primeiro a compartilhar um relato e ajudar um animal."
+                  : "Tente buscar por outro nome ou localização, ou altere os filtros."}
+              </p>
+
+              {(busqueda || filtro !== "Todos") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusqueda("");
+                    handleFilterChange("Todos");
+                  }}
+                >
+                  Limpar filtros
+                </button>
+              )}
             </div>
+          )}
+        </div>
+      </section>
 
-            <div className="lista-pets">
+      {/* AJUDA */}
+      <section id="ajuda" className="ajuda">
+        <span className="section-eyebrow">ESTAMOS AQUI PARA AJUDAR</span>
+        <h2>Precisa de ajuda?</h2>
+        <h3>Como utilizar o CarameloFinder?</h3>
+        <ol>
+          <li>Procure um animal pelo nome ou localização.</li>
+          <li>Utilize as opções Perdidos e Encontrados para filtrar os relatos.</li>
+          <li>Compartilhe os relatos para ajudar os animais a reencontrarem suas famílias.</li>
+        </ol>
+      </section>
 
-          {petsFiltrados.map((pet) => {
-                const cartao = (
-                    <PetCard
-                        key={pet.id}
-                        nome={pet.nome}
-                        idade={pet.idade}
-                        sexo={pet.sexo}
-                        situacao={pet.situacao}
-                        localizacao={pet.localizacao}
-                        data={pet.data}
-                        imagem={pet.imagem}
-                        contato={pet.contato}
-                    />
-                );
+      {/* REDES SOCIAIS */}
+      <section className="redes-sociais">
+        <h2 className="titulo-redes">Compartilhe nossa causa. 🐾</h2>
+        <p>Ajude mais animais a reencontrarem suas famílias</p>
 
-                if (!pet.apiId || !onViewDetails) return cartao;
+        <div className="icones-redes">
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <img src="/instagram.png" alt="Instagram" />
+          </a>
+          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <img src="/facebook.png" alt="Facebook" />
+          </a>
+          <a href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <img src="/whatsapp.png" alt="WhatsApp" />
+          </a>
+        </div>
+      </section>
 
-                return (
-                    <div
-                        key={pet.id}
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => onViewDetails(pet.apiId)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") onViewDetails(pet.apiId);
-                        }}
-                    >
-                        {cartao}
-                    </div>
-                );
-            })}
-            </div>
-            </section>
-
-            <section id="ajuda" className="ajuda">
-                <h2>
-                    <img src="/patanaranja.png" alt="" className="icone-menu" />
-                    Precisa de ajuda?
-                    </h2>
-
-                <h3>Como utilizar o CarameloFinder?</h3>
-
-                <ol>
-                    <li>Procure um animal pelo nome ou localização.</li>
-                    <li>Utilize as opções Perdidos e Encontrados para filtrar os relatos.</li>
-                    <li>Compartilhe os relatos para ajudar os animais a reencontrarem suas famílias.</li>
-                </ol>
-
-            </section>
-
-            <section className="redes-sociais">
-                <h2 className="titulo-redes">
-                    Compartilhe nossa causa.
-                    <img src="/patas.png" alt="" className="icone-patitas"/>
-                    </h2>
-                <p>Ajude mais animais a reencontrarem suas famílias</p>
-
-                <div className="icones-redes">
-                    <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
-                    <img src="/instagram.png" alt="Instagram" />
-                    </a>
-
-                    <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">
-                    <img src="/facebook.png" alt="Facebook" />
-                    </a>
-
-                    <a href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer">
-                    <img src="/whatsapp.png" alt="WhatsApp" />
-                    </a>
-
-                </div>
-
-            </section>
-            <footer className="rodape">
-                <p>
-                    <img src="/patas.png" alt="" className="icone-rodape" />
-                     CarameloFinder - Juntos encontramos lares!
-                     <img src="/coracaorojo.png" alt="" className="icone-rodape" />
-                     </p>
-                <p>&copy; 2026 CarameloFinder. Projeto desenvolvido para o curso de Front End.</p>
-
-            </footer>
-    </main>
-)
+      <footer className="rodape">
+        <p>🐾 CarameloFinder - Juntos encontramos lares!</p>
+        <p>© 2026 CarameloFinder. Projeto desenvolvido para o curso de Front End.</p>
+      </footer>
+    </div>
+  );
 }
-export default Home
+
+export default Home;

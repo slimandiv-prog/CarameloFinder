@@ -1,19 +1,17 @@
+
 import "./PetList.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import PetDetails from "./pages/PetDetails";
 import Home from "./pages/Home";
 import LoginForm from "./pages/LoginForm";
 import CadastrarPet from "./pages/CadastrarPet";
-import UserBar from "./components/UserBar"; 
+import UserBar from "./components/UserBar";
 
 import "./App.css";
 import "./UserWelcome.css";
 
-import {
-  isLoggedIn,
-  logout,
-} from "./services/auth";
-
+import { isLoggedIn, logout } from "./services/auth";
 import { getPets } from "./services/api";
 
 import {
@@ -26,18 +24,18 @@ function App() {
   const [selectedPetId, setSelectedPetId] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState("home");
 
+  const [page, setPage] = useState("home");
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
 
-  async function loadPets() {
+  // Carregar os registros públicos.
+  const loadPets = useCallback(async () => {
     try {
       setLoading(true);
 
       const data = await getPets();
 
-      setPets(data);
-      setMessage("");
+      setPets(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Erro ao carregar os registros:", error);
 
@@ -47,24 +45,50 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
+  // Carregar registros ao iniciar a aplicação.
   useEffect(() => {
-    if (loggedIn) {
-      loadPets();
-    }
-  }, [loggedIn]);
+    loadPets();
+  }, [loadPets]);
 
+  // Monitorar expiração da sessão.
+  useEffect(() => {
+    function handleAuthExpired() {
+      setLoggedIn(false);
+      setSelectedPetId(null);
+      setPage("home");
+      setMessage(
+        "Sua sessão expirou. Faça login novamente para continuar."
+      );
+    }
+
+    window.addEventListener("auth:expired", handleAuthExpired);
+
+    return () => {
+      window.removeEventListener("auth:expired", handleAuthExpired);
+    };
+  }, []);
+
+  // Tratar acesso ao formulário pela navegação com hash.
   useEffect(() => {
     function handleHash() {
       if (window.location.hash === "#cadastrar") {
         setMessage("");
-        setPage("cadastrar");
+
+        if (isLoggedIn()) {
+          setLoggedIn(true);
+          setPage("cadastrar");
+        } else {
+          setPage("login");
+        }
+
         window.history.replaceState(
           null,
           "",
           window.location.pathname + window.location.search
         );
+
         window.scrollTo(0, 0);
       }
     }
@@ -72,17 +96,29 @@ function App() {
     window.addEventListener("hashchange", handleHash);
     handleHash();
 
-    return () => window.removeEventListener("hashchange", handleHash);
+    return () => {
+      window.removeEventListener("hashchange", handleHash);
+    };
   }, []);
 
-
+  // Login realizado com sucesso.
   function handleLoginSuccess() {
     setLoggedIn(true);
     setSelectedPetId(null);
-    setMessage("Login realizado com sucesso!");
+    setMessage("");
+    setPage("cadastrar");
+
+    loadPets();
   }
 
+  // Abrir tela de login.
+  function handleOpenLogin() {
+    setMessage("");
+    setPage("login");
+    window.scrollTo(0, 0);
+  }
 
+  // Encerrar sessão.
   async function handleLogout() {
     try {
       await logout();
@@ -91,14 +127,24 @@ function App() {
     } finally {
       setLoggedIn(false);
       setSelectedPetId(null);
-      setPets([]);
       setMessage("");
       setPage("home");
+
+      loadPets();
     }
   }
 
-
+  // Cadastrar animal.
   async function handleAddPet(pet) {
+    if (!isLoggedIn()) {
+      setLoggedIn(false);
+      setPage("login");
+
+      throw new Error(
+        "Você precisa fazer login para cadastrar um registro."
+      );
+    }
+
     try {
       await createAuthenticatedPet(pet);
 
@@ -116,11 +162,15 @@ function App() {
     }
   }
 
-
+  // Excluir animal.
   async function handleDeletePet(id) {
     if (!isLoggedIn()) {
-      setMessage("Você precisa fazer login para excluir um registro.");
-      return;
+      setLoggedIn(false);
+      setPage("login");
+
+      throw new Error(
+        "Você precisa fazer login para excluir um registro."
+      );
     }
 
     try {
@@ -135,53 +185,85 @@ function App() {
       setMessage(
         error.message || "Não foi possível excluir o registro."
       );
+
+      throw error;
     }
   }
 
-  if (!loggedIn) {
+  // Detalhes públicos.
+  if (selectedPetId !== null) {
     return (
       <main className="app">
-        <LoginForm onSuccess={handleLoginSuccess} />
+        <PetDetails
+          petId={selectedPetId}
+          onBack={() => {
+            setSelectedPetId(null);
+            loadPets();
+          }}
+        />
       </main>
     );
   }
 
-
-  if (selectedPetId !== null) {
+  // Login.
+  if (page === "login") {
     return (
-      <PetDetails
-        petId={selectedPetId}
-        onBack={() => {
-          setSelectedPetId(null);
-          loadPets();
-        }}
-      />
+      <main className="app">
+        <LoginForm onSuccess={handleLoginSuccess} />
+
+        <div className="login-back">
+          <button
+            type="button"
+            className="cp-link"
+            onClick={() => {
+              setPage("home");
+              setMessage("");
+            }}
+          >
+            ← Voltar para o início
+          </button>
+        </div>
+      </main>
     );
   }
 
   return (
     <main className="app">
-
-    
-      <UserBar
-        page={page}
-        onHome={() => setPage("home")}
-        onLogout={handleLogout}
-      />
-
-     
-      {page === "home" && (
-        <header>
-          <Home apiPets={pets} onViewDetails={setSelectedPetId} />
-
-          <p>
-            Ajude animais perdidos a encontrarem o caminho de volta para casa.
-          </p>
-        </header>
+      {loggedIn && (
+        <UserBar
+          page={page}
+          onHome={() => {
+            setPage("home");
+            setMessage("");
+          }}
+          onLogout={handleLogout}
+        />
       )}
 
-      
-      {page === "cadastrar" && (
+      {page === "home" && (
+        <>
+          <Home
+            apiPets={pets}
+            onViewDetails={setSelectedPetId}
+            onAddPet={handleAddPet}
+            onLogin={handleOpenLogin}
+          />
+
+          {loading && (
+            <p className="app-loading">
+              Carregando registros...
+            </p>
+          )}
+
+          {message && (
+            <p className="app-message" role="alert">
+              {message}
+            </p>
+          )}
+        </>
+      )}
+
+      {page === "cadastrar" && loggedIn && (
         <CadastrarPet
           pets={pets}
           loading={loading}
@@ -192,7 +274,6 @@ function App() {
           onViewDetails={setSelectedPetId}
         />
       )}
-
     </main>
   );
 }
